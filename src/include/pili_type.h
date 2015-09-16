@@ -28,13 +28,16 @@ PILI_TYPE_POINTER(struct pili_h264_nalu, pili_h264_nalu_p);
 PILI_TYPE(struct pili_h264_key_frame, pili_h264_key_frame_t);
 PILI_TYPE_POINTER(struct pili_h264_key_frame, pili_h264_key_frame_p);
 
+PILI_TYPE(struct pili_error, pili_error_t);
+PILI_TYPE(enum pili_error_code, pili_error_code_t);
+
 #define PILI_STREAM_STATE_UNKNOW        0x00
 #define PILI_STREAM_STATE_CONNECTING    0x01
 #define PILI_STREAM_STATE_CONNECTED     0x02
 #define PILI_STREAM_STATE_DISCONNECTED  0x03
 #define PILI_STREAM_STATE_ERROR         0x04
 
-typedef void (*pili_stream_state_cb)(uint8_t state);
+typedef void (*pili_stream_state_cb)(uint8_t state, pili_error_t error);
 
 /**
  * stream context
@@ -53,6 +56,7 @@ struct pili_stream_context {
     uint8_t                 drop_frame_policy;
     uint32_t                buffer_time_interval;
     pili_stream_state_cb    stream_state_cb;
+    int                     state;
 };
 
 /**
@@ -63,11 +67,29 @@ struct pili_h264_nalu {
     size_t  length;
 };
 
+// Set nalu's length to -1 if there's no such nalu.
 struct pili_h264_key_frame {
     pili_h264_nalu_t sps;
     pili_h264_nalu_t pps;
     pili_h264_nalu_t sei;
     pili_h264_nalu_t idr;
 };
+
+/**
+ * error
+ */
+enum pili_error_code {
+    pili_ok = 0,
+    pili_connect_failure,
+    pili_connect_stream_failure,
+    pili_rtmp_close_func_invoked,
+};
+
+struct pili_error {
+    pili_error_code_t     code;
+    char                  msg[1024];
+};
+
+char *pili_version();
 
 #endif  // __PILI_CAMERA_SDK__TYPE__

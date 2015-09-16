@@ -41,6 +41,13 @@ pili_init_stream_context(ctx,
 ```
 
 ```
+// 流状态回调方法
+void stream_state_cb(uint8_t state, pili_error_t error) {
+    // 其中 state 在 pili_type.h 中有定义，error 包含 code 和 msg 供排查错误出处
+}
+```
+
+```
 // 开启推流
 char *url = "rtmp://YOUR_PUSH_URL";
 pili_stream_push_open(ctx, url);
@@ -62,6 +69,7 @@ int flv_init_tag(tag,
 // 对于 h264 编码的视频数据，SDK 提供了直接写入的方法，FLV Tag 的封装在 SDK 内部完成，开发者无需关心封装琐事。
 
 // 写入关键帧
+// 当某个 nalu 在关键帧中不包含时，将其的 length 填写为 -1 即可
 pili_h264_key_frame_t key_frame;
 key_frame.sps = sps;
 key_frame.pps = pps;
@@ -77,14 +85,19 @@ pili_write_h264_slice(ctx, nalu, ts)
 ```
 
 ```
-// 发送数据
-pili_write_packet(ctx, tag);
+// 发送封装后的 flv_tag 数据
+pili_write_flv_tag(ctx, tag);
 ```
 
 ```
 // 结束推流并释放上下文
 pili_stream_push_close(ctx);
 pili_stream_context_release(ctx);
+```
+
+```
+// 查看 pili camera sdk 版本
+pili_version();
 ```
 
 ## 封包详解
@@ -98,6 +111,10 @@ pili_stream_context_release(ctx);
 
 ## 版本历史
 
+- 0.3.0
+    - 添加 `pili_error_t`
+    - 更新流状态回调方法，增加 error 参数
+    - 更新 `pili_write_packet` 方法为 `pili_write_flv_tag`
 - 0.2.0
    - 更新接口
    - 添加 FLV 结构
